@@ -1,0 +1,21 @@
+---
+- name: Configure Servers
+  hosts: all
+  become: yes
+  tasks:
+    - name: Include network configuration tasks
+      include_role:
+        name: package_installation
+      tags: package
+
+    # - name: Include security configuration tasks
+    #   include_role:
+    #     name: security_configuration
+
+    # - name: Include services configuration tasks
+    #   include_role:
+    #     name: services_configuration
+
+    # - name: Include system management tasks
+    #   include_role:
+    #     name: system_management

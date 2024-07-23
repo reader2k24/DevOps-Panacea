@@ -1,0 +1,8 @@
+include:
+  - gitlab-ci/test_package.yml
+  # - gitlab-ci/test_network.yml
+  # - gitlab-ci/test_security.yml
+  # - gitlab-ci/test_services.yml
+  # - gitlab-ci/test_system_management.yml
+
+

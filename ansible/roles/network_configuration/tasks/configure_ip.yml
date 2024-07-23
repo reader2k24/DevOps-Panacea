@@ -1,0 +1,9 @@
+---
+- name: Изменения имен серверов
+  become: true
+  block:
+    - name: Установить имя сервера
+      ansible.builtin.hostname:
+        name: "{{ servers[inventory_hostname].name }}"
+      when: servers[inventory_hostname] is defined and servers[inventory_hostname].name != inventory_hostname
+

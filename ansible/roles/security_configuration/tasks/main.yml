@@ -1,0 +1,13 @@
+---
+- name: Configure Security
+  hosts: all
+  become: yes
+  tasks:
+    - name: Include VPN configuration
+      include_tasks: configure_vpn.yml
+
+    - name: Include SSH configuration
+      include_tasks: configure_ssh.yml
+
+    - name: Include firewall configuration
+      include_tasks: configure_firewall.yml

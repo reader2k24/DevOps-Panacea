@@ -1,0 +1,10 @@
+---
+- name: System Management Configuration
+  hosts: all
+  become: true
+  tasks:
+    - name: Configure Scripts and Users
+      include_tasks: configure_scripts_and_users.yml
+
+    - name: Install Bacula and ClamAV
+      include_tasks: install_clamav.yml

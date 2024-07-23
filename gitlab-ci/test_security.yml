@@ -1,0 +1,7 @@
+stages:
+  - 
+
+deploy:
+  stage: 
+  script:
+    - ansible-playbook -i inventory/hosts.ini all.yml

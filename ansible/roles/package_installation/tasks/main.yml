@@ -1,0 +1,37 @@
+---
+- name: Установка пакетов
+  become: true
+  tags:
+    - package
+  block:
+    - name: Обновление списков пакетов
+      ansible.builtin.apt:
+        update_cache: true
+
+    - name: Установка пакетов на сервера
+      ansible.builtin.package:
+        name: "{{ item.packages }}"
+        state: present
+      loop:
+        - { group: 'r1_server', packages: "{{ servers.R1.apt_R1 }}" }
+        - { group: 'r1_pc', packages: "{{ servers.PC_R1.apt_PC_R1 }}" }
+        - { group: 'r2_server', packages: "{{ servers.R2.apt_R2 }}" }
+        - { group: 'r2_pc', packages: "{{ servers.PC_R2.apt_PC_R2 }}" }
+        - { group: 'r0_server', packages: "{{ servers.R0.apt_R0 }}" }
+      when: inventory_hostname in groups[item.group]
+      no_log: true
+
+    - name: Остановка службы firewalld
+      ansible.builtin.service:
+        name: firewalld
+        state: stopped
+
+    - name: Отключение службы firewalld
+      ansible.builtin.service:
+        name: firewalld
+        enabled: no
+
+    - name: Установить имя сервера
+      ansible.builtin.hostname:
+        name: "{{ servers[inventory_hostname].name }}"
+      when: servers[inventory_hostname] is defined and servers[inventory_hostname].name != ansible_hostname

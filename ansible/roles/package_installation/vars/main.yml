@@ -1,0 +1,52 @@
+servers:
+  R1:
+    name: R1
+    apt_R1:
+      - network-manager
+      - isc-dhcp-server
+      - radvd
+      - frr
+      - strongswan
+      - chrony
+      - iperf3
+      - nfs-common
+      - firewalld
+      - iptables-persistent
+  PC_R1:
+    name: PC-R1
+    apt_PC_R1:
+      - network-manager
+      - bind9
+      - chrony
+      - clamav
+      - nfs-kernel-server
+      - nfs-common
+      - cups
+      - firewalld
+      - iptables-persistent
+  R2:
+    name: R2
+    apt_R2:
+      - network-manager
+      - frr
+      - strongswan
+      - chrony
+      - nfs-common
+      - firewalld
+      - iptables-persistent
+  PC_R2:
+    name: PC-R2
+    apt_PC_R2:
+      - network-manager
+      - chrony
+      - clamav
+      - nfs-common
+      - firewalld
+      - iptables-persistent
+  R0:
+    name: R0
+    apt_R0:
+      - network-manager
+      - chrony
+      - firewalld
+      - iptables-persistent

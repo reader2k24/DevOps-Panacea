@@ -1,0 +1,93 @@
+stages:
+  - install
+  - notify
+
+cache:
+  paths:
+    - .ansible/cache
+
+install_package_r1:
+  extends: .install_package_template
+  variables:
+    SERVER_LIMIT: 'r1_server'
+  tags:
+    - r1.server
+
+install_package_pc_r1:
+  extends: .install_package_template
+  variables:
+    SERVER_LIMIT: 'r1_pc'
+  tags:
+    - pc-r1.server
+
+install_package_r2:
+  extends: .install_package_template
+  variables:
+    SERVER_LIMIT: 'r2_server'
+  tags:
+    - r2.server
+
+install_package_pc_r2:
+  extends: .install_package_template
+  variables:
+    SERVER_LIMIT: 'r2_pc'
+  tags:
+    - pc-r2.server
+
+install_package_r0:
+  extends: .install_package_template
+  variables:
+    SERVER_LIMIT: 'r0_server'
+  tags:
+    - r0.server
+
+.install_package_template:
+  stage: install
+  script:
+    - ansible-playbook -i ansible/inventory/hosts ansible/all.yml --tags "package" --limit "${SERVER_LIMIT}"
+    - PLAYBOOK_STATUS=$?
+    - |
+      if [ $PLAYBOOK_STATUS -eq 0 ]; then
+        echo "${SERVER_LIMIT} - success" > "${SERVER_LIMIT}_job_status.txt";
+      else
+        echo "${SERVER_LIMIT} - failed" > "${SERVER_LIMIT}_job_status.txt"
+        exit 1;
+      fi
+    - cat "${SERVER_LIMIT}_job_status.txt"
+  artifacts:
+    paths:
+      - "${SERVER_LIMIT}_job_status.txt"
+  cache:
+    key: "${SERVER_LIMIT}_packages"
+    paths:
+      - .ansible/cache
+
+notify:
+  stage: notify
+  image: curlimages/curl:latest
+  script:
+    - MESSAGE="Результаты выполнения Ansible playbooks:"
+    - COUNTER=1
+    - |
+      for file in *_job_status.txt; do
+        SERVER=$(cat "$file" | cut -d ' ' -f 1)
+        STATUS=$(cat "$file" | cut -d ' ' -f 3)
+        if [ "$STATUS" == "success" ]; then
+          MESSAGE="${MESSAGE}%0A${COUNTER}) playbook #1 (apt & hostname) выполнен успешно для ${SERVER}"
+        else
+          MESSAGE="${MESSAGE}%0A${COUNTER}) playbook #1 завершился с ошибкой для ${SERVER}"
+        fi
+        COUNTER=$((COUNTER + 1))
+      done
+    - echo -e "$MESSAGE"
+    - curl -s -X POST "https://api.telegram.org/bot$TELEGRAM_BOT_TOKEN/sendMessage" -d "chat_id=$TELEGRAM_CHAT_ID" -d "text=$MESSAGE"
+  dependencies:
+    - install_package_r1
+    - install_package_pc_r1
+    - install_package_r2
+    - install_package_pc_r2
+    - install_package_r0
+  artifacts:
+    paths:
+      - r*_job_status.txt
+  when: always

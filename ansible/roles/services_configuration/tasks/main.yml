@@ -1,0 +1,20 @@
+---
+- name: Configure Security
+  hosts: all
+  become: yes
+  tasks:
+    - name: Configure DNS
+      include_tasks: configure_dns.yml
+
+    - name: Configure NTP
+      include_tasks: configure_ntp.yml
+
+    - name: Configure NFS
+      include_tasks: configure_nfs.yml
+
+    - name: Configure CUPS
+      include_tasks: configure_cups.yml
+
+    - name: Configure Mail Server
+      include_tasks: configure_mail_server.yml
+

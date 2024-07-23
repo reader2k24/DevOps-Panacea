@@ -1,0 +1,21 @@
+[r1_server]
+R1 ansible_host=192.168.111.181 ansible_port=22 ansible_user=root
+
+[r1_pc]
+PC_R1 ansible_host=192.168.111.182 ansible_port=22 ansible_user=root
+
+[r2_server]
+R2 ansible_host=192.168.111.183 ansible_port=22 ansible_user=root
+
+[r2_pc]
+PC_R2 ansible_host=192.168.111.184 ansible_port=22 ansible_user=root
+
+[r0_server]
+R0 ansible_host=192.168.111.185 ansible_port=22 ansible_user=root
+
+[all:children]
+r1_server
+r1_pc
+r2_server
+r2_pc
+r0_server

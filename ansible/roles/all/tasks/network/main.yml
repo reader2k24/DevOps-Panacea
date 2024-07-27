@@ -1,0 +1,32 @@
+---
+- name: Установка пакетов
+  become: true
+  tags:
+    - ip
+  when: inventory_hostname not in ['PC_R1', 'PC_R2']
+  block:
+    - name: Удаление старых соединений, если они существуют
+      community.general.nmcli:
+        conn_name: "{{ item.conn_name }}"
+        state: absent
+      loop:
+        - { conn_name: 'Wired connection 1' }
+        - { conn_name: 'Wired connection 2' }
+      ignore_errors: yes
+
+    - name: Обновление IP-адресов и настройка новых соединений
+      community.general.nmcli:
+        conn_name: "{{ item.value.conn_name }}"
+        state: present
+        type: ethernet
+        ifname: "{{ item.key }}"
+        ip4: "{{ item.value.address }}/{{ item.value.netmask }}"
+      loop: "{{ servers[inventory_hostname].interfaces | dict2items }}"
+      when: inventory_hostname in servers
+
+    - name: Активировать новое соединение
+      command: nmcli connection up "{{ item.value.conn_name }}"
+      loop: "{{ servers[inventory_hostname].interfaces | dict2items }}"
+      when: inventory_hostname in servers
+
+  

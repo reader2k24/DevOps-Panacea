@@ -1,0 +1,8 @@
+---
+- name: Include installation tasks
+  include_tasks: package/main.yml
+  tags: package
+
+- name: Include installation tasks
+  include_tasks: network/main.yml
+  tags: ip

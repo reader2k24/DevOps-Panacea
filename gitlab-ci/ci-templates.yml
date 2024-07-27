@@ -1,0 +1,76 @@
+# Шаблон для задач по установке пакетов
+.install_package_template:
+  stage: install_packages
+  script:
+    - ansible-playbook -i ansible/inventory/hosts ansible/all.yml --tags "package" --limit "$SERVER_LIMIT"
+    - PLAYBOOK_STATUS=$?
+    - FILENAME="${SERVER_LIMIT}_packages.txt"
+    - |
+      if [ $PLAYBOOK_STATUS -eq 0 ]; then
+        echo "$SERVER_LIMIT - success" > "$FILENAME"
+      else
+        echo "$SERVER_LIMIT - failed" > "$FILENAME"
+        exit 1
+      fi
+    - cat "$FILENAME"
+  artifacts:
+    paths:
+      - "*_packages.txt"
+  cache:
+    key: "$SERVER_LIMIT_packages"
+    paths:
+      - .ansible/cache
+
+# Шаблон для задач по установке IP
+.install_package_ip_template:
+  stage: install_ip
+  script:
+    - ansible-playbook -i ansible/inventory/hosts ansible/all.yml --tags "ip" --limit "$SERVER_LIMIT"
+    - PLAYBOOK_STATUS=$?
+    - FILENAME="${SERVER_LIMIT}_ip.txt"
+    - |
+      if [ $PLAYBOOK_STATUS -eq 0 ]; then
+        echo "$SERVER_LIMIT - success" > "$FILENAME"
+      else
+        echo "$SERVER_LIMIT - failed" > "$FILENAME"
+        exit 1
+      fi
+    - cat "$FILENAME"
+  artifacts:
+    paths:
+      - "*_ip.txt"
+  cache:
+    key: "$SERVER_LIMIT_ip"
+    paths:
+      - .ansible/cache
+
+# Шаблон для уведомлений
+.notify_template:
+  stage: notify_ip
+  image: curlimages/curl:latest
+  script:
+    - MESSAGE="Результаты выполнения Ansible playbooks:\n"
+    - COUNTER=1
+    - |
+      for file in r*.txt; do
+        SERVER=$(cat "$file" | cut -d ' ' -f 1)
+        STATUS=$(cat "$file" | cut -d ' ' -f 3)
+        if [ "$STATUS" == "success" ]; then
+          MESSAGE="${MESSAGE}${COUNTER}) playbook #${PLAYBOOK_INDEX} выполнен успешно для ${SERVER}\n"
+        else
+          MESSAGE="${MESSAGE}${COUNTER}) playbook #${PLAYBOOK_INDEX} завершился с ошибкой для ${SERVER}\n"
+        fi
+        COUNTER=$((COUNTER + 1))
+      done
+    - echo -e "$MESSAGE"
+    - |
+      RESPONSE=$(curl -s -X POST "https://api.telegram.org/bot$TELEGRAM_BOT_TOKEN/sendMessage" -d "chat_id=$TELEGRAM_CHAT_ID" -d "text=$(echo -e "$MESSAGE")")
+      echo "Response from Telegram API: $RESPONSE"
+      if echo "$RESPONSE" | grep -q '"ok":false'; then
+        echo "Ошибка отправки сообщения. Проверьте Telegram API и токен."
+        exit 1
+      fi
+  artifacts:
+    paths:
+      - "r*.txt"
+  when: always

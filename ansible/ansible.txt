@@ -1,0 +1,61 @@
+.
+├── all.yml
+├── ansible.txt
+├── inventory
+│   └── hosts
+├── README.md
+└── roles
+    ├── network_configuration
+    │   ├── files
+    │   ├── meta
+    │   │   └── main.yml
+    │   ├── tasks
+    │   │   ├── configure_dhcp.yml
+    │   │   ├── configure_ip.yml
+    │   │   ├── configure_routing.yml
+    │   │   ├── main.yml
+    │   │   └── package_installation.yml
+    │   ├── templates
+    │   └── vars
+    ├── package_installation
+    │   ├── meta
+    │   │   └── main.yml
+    │   ├── tasks
+    │   │   └── main.yml
+    │   └── vars
+    │       └── main.yml
+    ├── security_configuration
+    │   ├── files
+    │   ├── meta
+    │   │   └── main.yml
+    │   ├── tasks
+    │   │   ├── configure_firewall.yml
+    │   │   ├── configure_ssh.yml
+    │   │   ├── configure_vpn.yml
+    │   │   └── main.yml
+    │   └── templates
+    ├── services_configuration
+    │   ├── files
+    │   ├── meta
+    │   │   └── main.yml
+    │   ├── tasks
+    │   │   ├── configure_cups.yml
+    │   │   ├── configure_dns.yml
+    │   │   ├── configure_mail_server.yml
+    │   │   ├── configure_nfs.yml
+    │   │   ├── configure_ntp.yml
+    │   │   └── main.yml
+    │   └── templates
+    └── system_management
+        ├── files
+        │   ├── backup_PC-R1.sh
+        │   └── enc_PC-R2.sh
+        ├── meta
+        │   └── main.yml
+        ├── tasks
+        │   ├── configure_scripts_and_users.yml
+        │   ├── install_clamav.yml
+        │   └── main.yml
+        └── templates
+
+28 directories, 31 files

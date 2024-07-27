@@ -19,19 +19,25 @@
 1. На большинстве дистрибутивов Linux вы можете установить Ansible с помощью пакетного менеджера:
     #### Для Ubuntu/Debian:
 
+        ```bash
         sudo apt update
         sudo apt install ansible
+        ```
 
     #### Для CentOS/RHEL:
 
+        ```bash
         sudo yum install epel-release
         sudo yum install ansible
+        ```
 
     #### Проверка установки
 
     После установки Ansible, вы можете проверить его версию командой:
 
+        ```bash
         ansible --version
+        ```
 
 2. Настройте файл `hosts` для указания целевых серверов, которые будут конфигурироваться.
 

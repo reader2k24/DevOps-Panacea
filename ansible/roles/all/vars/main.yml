@@ -1,6 +1,15 @@
 servers:
   R1:
     name: R1
+    interfaces:
+      ens36:
+        address: 111.100.100.2
+        netmask: 24
+        conn_name: "Wired connection 1"
+      ens37:
+        address: 100.100.100.1
+        netmask: 26
+        conn_name: "Wired connection 2"
     apt_R1:
       - network-manager
       - isc-dhcp-server
@@ -26,6 +35,15 @@ servers:
       - iptables-persistent
   R2:
     name: R2
+    interfaces:
+      ens36:
+        address: 222.100.100.2
+        netmask: 24
+        conn_name: "Wired connection 1"
+      ens37:
+        address: 200.200.200.1
+        netmask: 28
+        conn_name: "Wired connection 2"
     apt_R2:
       - network-manager
       - frr
@@ -45,6 +63,15 @@ servers:
       - iptables-persistent
   R0:
     name: R0
+    interfaces:
+      ens36:
+        address: 111.100.100.1
+        netmask: 24
+        conn_name: "Wired connection 1"
+      ens37:
+        address: 222.100.100.1
+        netmask: 24
+        conn_name: "Wired connection 2"
     apt_R0:
       - network-manager
       - chrony

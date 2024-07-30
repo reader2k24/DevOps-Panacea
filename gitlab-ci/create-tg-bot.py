@@ -22,7 +22,7 @@ def load_env_from_file(filename):
 def get_project_id(token, project_name):
     url = f'https://gitlab.com/api/v4/projects?search={project_name}'
     headers = {'PRIVATE-TOKEN': token}
-
+    
     response = requests.get(url, headers=headers)
     if response.status_code != 200:
         print(f"Ошибка при запросе: {response.text}")
@@ -32,7 +32,7 @@ def get_project_id(token, project_name):
     for project in projects:
         if project['name'] == project_name:
             return project['id']
-
+    
     print(f"Проект '{project_name}' не найден.")
     return None
 
@@ -48,10 +48,10 @@ def get_bot_token():
     token = input("Введите токен вашего Telegram бота: ").strip()
     if not token:
         raise ValueError("Токен не может быть пустым.")
-
+    
     if not os.path.exists(TOKEN_DIR):
         os.makedirs(TOKEN_DIR)
-
+    
     return token
 
 def get_chat_id(token):
@@ -64,7 +64,7 @@ def get_chat_id(token):
         return None
 
     data = response.json()
-
+    
     if data.get("ok") and data.get("result"):
         chat_id = data['result'][0]['message']['chat']['id']
         print(f'Полученный chat_id: {chat_id}')
@@ -77,7 +77,7 @@ def add_variable_to_gitlab(project_id, key, value, token):
     url = f'https://gitlab.com/api/v4/projects/{project_id}/variables'
     headers = {'PRIVATE-TOKEN': token}
     data = {'key': key, 'value': value}
-
+    
     try:
         response = requests.post(url, headers=headers, data=data)
         response.raise_for_status()
@@ -103,39 +103,39 @@ def main():
     if len(sys.argv) != 2:
         print("Ошибка: Необходимо указать путь к временному файлу.")
         sys.exit(1)
-
+    
     temp_file = sys.argv[1]
-
+    
     # Загрузка переменных окружения из временного файла
     if not os.path.exists(temp_file):
         print(f"Ошибка: Временный файл не найден: {temp_file}")
         sys.exit(1)
-
+    
     load_env_from_file(temp_file)
-
+    
     gitlab_token = os.getenv('TOKEN')
     gitlab_account = os.getenv('GITLAB_ACCOUNT')
-
+    
     # Отладочный вывод для проверки переменных
     print(f"GitLab Token: {gitlab_token}")
     print(f"GitLab Account: {gitlab_account}")
-
+    
     if not gitlab_token or not gitlab_account:
         print("Не удалось загрузить GitLab токен и/или аккаунт из временного файла.")
         return
-
+    
     project_name = "DevOps-Panacea"
     project_id = get_project_id(gitlab_token, project_name)
-
+    
     if project_id:
         token = get_bot_token()
         chat_id = get_chat_id(token)
-
+        
         if chat_id:
             # Отправка переменных в GitLab
             add_variable_to_gitlab(project_id, 'TELEGRAM_BOT_TOKEN', token, gitlab_token)
             add_variable_to_gitlab(project_id, 'TELEGRAM_CHAT_ID', str(chat_id), gitlab_token)
-
+            
             # Отправка тестового сообщения
             message = "Привет! Это тестовое сообщение от бота."
             response = send_message(token, chat_id, message)

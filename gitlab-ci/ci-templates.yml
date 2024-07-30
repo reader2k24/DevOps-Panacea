@@ -1,10 +1,9 @@
-# Шаблон для задач по установке пакетов
-.install_package_template:
-  stage: install_packages
+# Шаблон для установки
+.install_template:
   script:
-    - ansible-playbook -i ansible/inventory/hosts ansible/all.yml --tags "package" --limit "$SERVER_LIMIT"
+    - ansible-playbook -i ansible/inventory/hosts ansible/all.yml --tags "$TAGS" --limit "$SERVER_LIMIT"
     - PLAYBOOK_STATUS=$?
-    - FILENAME="${SERVER_LIMIT}_packages.txt"
+    - FILENAME="${SERVER_LIMIT}_$FILE_SUFFIX"
     - |
       if [ $PLAYBOOK_STATUS -eq 0 ]; then
         echo "$SERVER_LIMIT - success" > "$FILENAME"
@@ -12,55 +11,48 @@
         echo "$SERVER_LIMIT - failed" > "$FILENAME"
         exit 1
       fi
-    - cat "$FILENAME"
-  artifacts:
-    paths:
-      - "*_packages.txt"
-  cache:
-    key: "$SERVER_LIMIT_packages"
-    paths:
-      - .ansible/cache
+    - ls -al  # Проверка наличия созданных файлов
+    - cat "$FILENAME"  # Проверка содержимого файла
 
-# Шаблон для задач по установке IP
-.install_package_ip_template:
-  stage: install_ip
-  script:
-    - ansible-playbook -i ansible/inventory/hosts ansible/all.yml --tags "ip" --limit "$SERVER_LIMIT"
-    - PLAYBOOK_STATUS=$?
-    - FILENAME="${SERVER_LIMIT}_ip.txt"
-    - |
-      if [ $PLAYBOOK_STATUS -eq 0 ]; then
-        echo "$SERVER_LIMIT - success" > "$FILENAME"
-      else
-        echo "$SERVER_LIMIT - failed" > "$FILENAME"
-        exit 1
-      fi
-    - cat "$FILENAME"
-  artifacts:
-    paths:
-      - "*_ip.txt"
-  cache:
-    key: "$SERVER_LIMIT_ip"
-    paths:
-      - .ansible/cache
+# Шаблон для установки пакетов
+.package_template:
+  extends: .install_template
+  variables:
+    TAGS: package
+    FILE_SUFFIX: packages.txt
+
+# Шаблон для установки IP
+.ip_template:
+  extends: .install_template
+  variables:
+    TAGS: ip
+    FILE_SUFFIX: ip.txt
 
 # Шаблон для уведомлений
 .notify_template:
   stage: notify_ip
-  image: curlimages/curl:latest
+  image: alpine:latest
+  before_script:
+    - apk add --no-cache curl
   script:
     - MESSAGE="Результаты выполнения Ansible playbooks:\n"
     - COUNTER=1
+    - echo "Files present in the directory:"
+    - ls -l
     - |
-      for file in r*.txt; do
-        SERVER=$(cat "$file" | cut -d ' ' -f 1)
-        STATUS=$(cat "$file" | cut -d ' ' -f 3)
-        if [ "$STATUS" == "success" ]; then
-          MESSAGE="${MESSAGE}${COUNTER}) playbook #${PLAYBOOK_INDEX} выполнен успешно для ${SERVER}\n"
+      for file in $NOTIFY_FILES; do
+        if [ -f "$file" ]; then
+          SERVER=$(cat "$file" | cut -d ' ' -f 1)
+          STATUS=$(cat "$file" | cut -d ' ' -f 3)
+          if [ "$STATUS" == "success" ]; then
+            MESSAGE="${MESSAGE}${COUNTER}) playbook #${PLAYBOOK_INDEX} выполнен успешно для ${SERVER}\n"
+          else
+            MESSAGE="${MESSAGE}${COUNTER}) playbook #${PLAYBOOK_INDEX} завершился с ошибкой для ${SERVER}\n"
+          fi
+          COUNTER=$((COUNTER + 1))
         else
-          MESSAGE="${MESSAGE}${COUNTER}) playbook #${PLAYBOOK_INDEX} завершился с ошибкой для ${SERVER}\n"
+          echo "File $file does not exist."
         fi
-        COUNTER=$((COUNTER + 1))
       done
     - echo -e "$MESSAGE"
     - |

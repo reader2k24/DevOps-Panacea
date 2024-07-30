@@ -1,0 +1,80 @@
+include:
+  - local: 'gitlab-ci/ci-templates.yml'
+
+# Шаблон для установки IP
+.configure_ip:
+  extends: .ip_template
+  artifacts:
+    paths:
+      - $NOTIFY_FILES
+    expire_in: 1 hour
+
+# Задачи для установки IP
+configure_ip_r1:
+  extends: .configure_ip
+  variables:
+    SERVER_LIMIT: 'r1_server'
+    NOTIFY_FILES: 'r1_server_ip.txt'
+  tags:
+    - r1.server
+  needs:
+    - install_package_r1
+  stage: configure_ip
+
+configure_ip_pc_r1:
+  extends: .configure_ip
+  variables:
+    SERVER_LIMIT: 'r1_pc'
+    NOTIFY_FILES: 'r1_pc_ip.txt'
+  tags:
+    - pc-r1.server
+  needs:
+    - install_package_pc_r1
+  stage: configure_ip
+
+configure_ip_r2:
+  extends: .configure_ip
+  variables:
+    SERVER_LIMIT: 'r2_server'
+    NOTIFY_FILES: 'r2_server_ip.txt'
+  tags:
+    - r2.server
+  needs:
+    - install_package_r2
+  stage: configure_ip
+
+configure_ip_pc_r2:
+  extends: .configure_ip
+  variables:
+    SERVER_LIMIT: 'r2_pc'
+    NOTIFY_FILES: 'r2_pc_ip.txt'
+  tags:
+    - pc-r2.server
+  needs:
+    - install_package_pc_r2
+  stage: configure_ip
+
+configure_ip_r0:
+  extends: .configure_ip
+  variables:
+    SERVER_LIMIT: 'r0_server'
+    NOTIFY_FILES: 'r0_server_ip.txt'
+  tags:
+    - r0.server
+  needs:
+    - install_package_r0
+  stage: configure_ip
+
+# Уведомление после установки IP
+notify_ip:
+  extends: .notify_template
+  variables:
+    PLAYBOOK_INDEX: "2"
+    NOTIFY_FILES: 'r1_server_ip.txt r1_pc_ip.txt r2_server_ip.txt r2_pc_ip.txt r0_server_ip.txt'
+  needs:
+    - configure_ip_r1
+    - configure_ip_pc_r1
+    - configure_ip_r2
+    - configure_ip_pc_r2
+    - configure_ip_r0
+  when: always

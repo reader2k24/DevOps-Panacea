@@ -1,0 +1,74 @@
+include:
+  - local: 'gitlab-ci/ci-templates.yml'
+
+stages:
+  - install_packages
+  - notify_packages
+
+# Шаблон для установки пакетов
+.install_package:
+  extends: .package_template
+  artifacts:
+    paths:
+      - $NOTIFY_FILES
+    expire_in: 1 hour
+
+# Задачи для установки пакетов
+install_package_r1:
+  extends: .install_package
+  variables:
+    SERVER_LIMIT: 'r1_server'
+    NOTIFY_FILES: 'r1_server_packages.txt'
+  tags:
+    - r1.server
+  stage: install_packages
+
+install_package_pc_r1:
+  extends: .install_package
+  variables:
+    SERVER_LIMIT: 'r1_pc'
+    NOTIFY_FILES: 'r1_pc_packages.txt'
+  tags:
+    - pc-r1.server
+  stage: install_packages
+
+install_package_r2:
+  extends: .install_package
+  variables:
+    SERVER_LIMIT: 'r2_server'
+    NOTIFY_FILES: 'r2_server_packages.txt'
+  tags:
+    - r2.server
+  stage: install_packages
+
+install_package_pc_r2:
+  extends: .install_package
+  variables:
+    SERVER_LIMIT: 'r2_pc'
+    NOTIFY_FILES: 'r2_pc_packages.txt'
+  tags:
+    - pc-r2.server
+  stage: install_packages
+
+install_package_r0:
+  extends: .install_package
+  variables:
+    SERVER_LIMIT: 'r0_server'
+    NOTIFY_FILES: 'r0_server_packages.txt'
+  tags:
+    - r0.server
+  stage: install_packages
+
+# Уведомление после установки пакетов
+notify_packages:
+  extends: .notify_template
+  variables:
+    PLAYBOOK_INDEX: "1"
+    NOTIFY_FILES: 'r1_server_packages.txt r1_pc_packages.txt r2_server_packages.txt r2_pc_packages.txt r0_server_packages.txt'
+  needs:
+    - install_package_r1
+    - install_package_pc_r1
+    - install_package_r2
+    - install_package_pc_r2
+    - install_package_r0
+  stage: notify_packages

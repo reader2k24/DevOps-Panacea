@@ -1,5 +1,5 @@
 ---
-- name: Установка пакетов
+- name: Конфигурация IPv4 и IPv6
   become: true
   tags:
     - ip
@@ -21,12 +21,45 @@
         type: ethernet
         ifname: "{{ item.key }}"
         ip4: "{{ item.value.address }}/{{ item.value.netmask }}"
+        ip6: "{{ item.value.ipv6_address }}/{{ item.value.ipv6_prefix }}"
       loop: "{{ servers[inventory_hostname].interfaces | dict2items }}"
       when: inventory_hostname in servers
 
     - name: Активировать новое соединение
-      command: nmcli connection up "{{ item.value.conn_name }}"
+      ansible.builtin.command: nmcli connection up "{{ item.value.conn_name }}"
       loop: "{{ servers[inventory_hostname].interfaces | dict2items }}"
       when: inventory_hostname in servers
 
-  
+    - name: Добавление маршрутов для R1
+      ansible.builtin.shell: |
+        nmcli connection modify "Wired connection 1" ipv4.routes "222.100.100.1/24 111.100.100.1 100"
+        nmcli connection modify "Wired connection 1" ipv6.routes "::/0 1110:A::1 100"
+      when: inventory_hostname == 'R1'
+
+    - name: Добавление маршрутов для R2
+      ansible.builtin.shell: |
+        nmcli connection modify "Wired connection 1" ipv4.routes "111.100.100.1/24 222.100.100.1 100"
+        nmcli connection modify "Wired connection 1" ipv6.routes "::/0 2220:B::1 100"
+      when: inventory_hostname == 'R2'
+
+    - name: Применение общих настроек sysctl
+      ansible.builtin.sysctl:
+        name: "{{ item.split('=')[0] }}"
+        value: "{{ item.split('=')[1] }}"
+        state: present
+      loop: "{{ servers[inventory_hostname].sysctl_settings.common }}"
+      notify: Reload sysctl
+
+    - name: Применение настроек sysctl
+      ansible.builtin.sysctl:
+        name: "{{ item.split('=')[0] }}"
+        value: "{{ item.split('=')[1] }}"
+        state: present
+      loop: "{{ servers[inventory_hostname].sysctl_settings.specific | default([]) }}"
+      notify: Reload sysctl
+
+    - name: Перезапуск NetworkManager
+      ansible.builtin.systemd:
+        name: NetworkManager
+        state: restarted
+

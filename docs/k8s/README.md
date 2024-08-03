@@ -24,7 +24,7 @@
 18. [Secret](docs/docs/Secret.md)
 19. [RBAC (Role-Based Access Control)](docs/docs/RBAC.md)
 20. [MicroScanner для контейнеров](docs/docs/MicroScanner.md)
-21. [Kubectl](docs/docs/Kubectl.md)
+21. [Kubectl](docs/Kubectl.md)
 
 ## Обзор
 
